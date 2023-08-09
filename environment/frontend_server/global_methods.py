@@ -66,7 +66,7 @@ def write_list_of_list_to_csv(curr_list_of_list, outfile):
     writer.writerows(curr_list_of_list)
 
 
-def write_list_to_csv_line(line_list, outfile): 
+def write_list_to_csv_line(line_list, outfile):
   """
   Writes one line to a csv file.
   Unlike write_list_of_list_to_csv, this opens an existing outfile and then 
@@ -82,14 +82,12 @@ def write_list_to_csv_line(line_list, outfile):
   """
   create_folder_if_not_there(outfile)
 
-  # Opening the file first so we can write incrementally as we progress
-  curr_file = open(outfile, 'a',)
-  csvfile_1 = csv.writer(curr_file)
-  csvfile_1.writerow(line_list)
-  curr_file.close()
+  with open(outfile, 'a',) as curr_file:
+    csvfile_1 = csv.writer(curr_file)
+    csvfile_1.writerow(line_list)
 
 
-def read_file_to_list(curr_file, header=False, strip_trail=True): 
+def read_file_to_list(curr_file, header=False, strip_trail=True):
   """
   Reads in a csv file to a list of list. If header is True, it returns a 
   tuple with (header row, all rows)
@@ -98,8 +96,8 @@ def read_file_to_list(curr_file, header=False, strip_trail=True):
   RETURNS: 
     List of list where the component lists are the rows of the file. 
   """
+  analysis_list = []
   if not header: 
-    analysis_list = []
     with open(curr_file) as f_analysis_file: 
       data_reader = csv.reader(f_analysis_file, delimiter=",")
       for count, row in enumerate(data_reader): 
@@ -108,7 +106,6 @@ def read_file_to_list(curr_file, header=False, strip_trail=True):
         analysis_list += [row]
     return analysis_list
   else: 
-    analysis_list = []
     with open(curr_file) as f_analysis_file: 
       data_reader = csv.reader(f_analysis_file, delimiter=",")
       for count, row in enumerate(data_reader): 
@@ -118,7 +115,7 @@ def read_file_to_list(curr_file, header=False, strip_trail=True):
     return analysis_list[0], analysis_list[1:]
 
 
-def read_file_to_set(curr_file, col=0): 
+def read_file_to_set(curr_file, col=0):
   """
   Reads in a "single column" of a csv file to a set. 
   ARGS:
@@ -129,12 +126,12 @@ def read_file_to_set(curr_file, col=0):
   analysis_set = set()
   with open(curr_file) as f_analysis_file: 
     data_reader = csv.reader(f_analysis_file, delimiter=",")
-    for count, row in enumerate(data_reader): 
+    for row in data_reader:
       analysis_set.add(row[col])
   return analysis_set
 
 
-def get_row_len(curr_file): 
+def get_row_len(curr_file):
   """
   Get the number of rows in a csv file 
   ARGS:
@@ -147,7 +144,7 @@ def get_row_len(curr_file):
     analysis_set = set()
     with open(curr_file) as f_analysis_file: 
       data_reader = csv.reader(f_analysis_file, delimiter=",")
-      for count, row in enumerate(data_reader): 
+      for row in data_reader:
         analysis_set.add(row[0])
     return len(analysis_set)
   except: 
@@ -181,8 +178,10 @@ def find_filenames(path_to_dir, suffix=".csv"):
     A list of paths to all files in the directory. 
   """
   filenames = listdir(path_to_dir)
-  return [ path_to_dir+"/"+filename 
-           for filename in filenames if filename.endswith( suffix ) ]
+  return [
+      f"{path_to_dir}/{filename}" for filename in filenames
+      if filename.endswith(suffix)
+  ]
 
 
 def average(list_of_val): 
@@ -196,7 +195,7 @@ def average(list_of_val):
   return sum(list_of_val)/float(len(list_of_val))
 
 
-def std(list_of_val): 
+def std(list_of_val):
   """
   Finds the std of the numbers in a list.
   ARGS:
@@ -204,8 +203,7 @@ def std(list_of_val):
   RETURNS: 
     The std of the values
   """
-  std = numpy.std(list_of_val)
-  return std
+  return numpy.std(list_of_val)
 
 
 def copyanything(src, dst):
@@ -225,8 +223,6 @@ def copyanything(src, dst):
     else: raise
 
 
-if __name__ == '__main__':
-  pass
 
 
 

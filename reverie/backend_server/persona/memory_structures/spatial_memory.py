@@ -22,7 +22,7 @@ class MemoryTree:
   def print_tree(self): 
     def _print_tree(tree, depth):
       dash = " >" * depth
-      if type(tree) == type(list()): 
+      if type(tree) == type([]): 
         if tree:
           print (dash, tree)
         return 
@@ -31,7 +31,7 @@ class MemoryTree:
         if key: 
           print (dash, key)
         _print_tree(val, depth+1)
-    
+
     _print_tree(self.tree, 0)
     
 
@@ -41,7 +41,7 @@ class MemoryTree:
 
 
 
-  def get_str_accessible_sectors(self, curr_world): 
+  def get_str_accessible_sectors(self, curr_world):
     """
     Returns a summary string of all the arenas that the persona can access 
     within the current sector. 
@@ -56,11 +56,10 @@ class MemoryTree:
     EXAMPLE STR OUTPUT
       "bedroom, kitchen, dining room, office, bathroom"
     """
-    x = ", ".join(list(self.tree[curr_world].keys()))
-    return x
+    return ", ".join(list(self.tree[curr_world].keys()))
 
 
-  def get_str_accessible_sector_arenas(self, sector): 
+  def get_str_accessible_sector_arenas(self, sector):
     """
     Returns a summary string of all the arenas that the persona can access 
     within the current sector. 
@@ -78,8 +77,7 @@ class MemoryTree:
     curr_world, curr_sector = sector.split(":")
     if not curr_sector: 
       return ""
-    x = ", ".join(list(self.tree[curr_world][curr_sector].keys()))
-    return x
+    return ", ".join(list(self.tree[curr_world][curr_sector].keys()))
 
 
   def get_str_accessible_arena_game_objects(self, arena):
@@ -109,7 +107,7 @@ class MemoryTree:
 
 
 if __name__ == '__main__':
-  x = f"../../../../environment/frontend_server/storage/the_ville_base_LinFamily/personas/Eddy Lin/bootstrap_memory/spatial_memory.json"
+  x = "../../../../environment/frontend_server/storage/the_ville_base_LinFamily/personas/Eddy Lin/bootstrap_memory/spatial_memory.json"
   x = MemoryTree(x)
   x.print_tree()
 

@@ -13,7 +13,7 @@ from persona.prompt_template.gpt_structure import *
 from numpy import dot
 from numpy.linalg import norm
 
-def retrieve(persona, perceived): 
+def retrieve(persona, perceived):
   """
   This function takes the events that are perceived by the persona as input
   and returns a set of related events and thoughts that the persona would 
@@ -29,12 +29,10 @@ def retrieve(persona, perceived):
                while the latter layer specifies the "curr_event", "events", 
                and "thoughts" that are relevant.
   """
-  # We rerieve events and thoughts separately. 
-  retrieved = dict()
+  # We rerieve events and thoughts separately.
+  retrieved = {}
   for event in perceived: 
-    retrieved[event.description] = dict()
-    retrieved[event.description]["curr_event"] = event
-    
+    retrieved[event.description] = {"curr_event": event}
     relevant_events = persona.a_mem.retrieve_relevant_events(
                         event.subject, event.predicate, event.object)
     retrieved[event.description]["events"] = list(relevant_events)
@@ -42,7 +40,7 @@ def retrieve(persona, perceived):
     relevant_thoughts = persona.a_mem.retrieve_relevant_thoughts(
                           event.subject, event.predicate, event.object)
     retrieved[event.description]["thoughts"] = list(relevant_thoughts)
-    
+
   return retrieved
 
 
@@ -90,8 +88,8 @@ def normalize_dict_floats(d, target_min, target_max):
     target_min = -5
     target_max = 5
   """
-  min_val = min(val for val in d.values())
-  max_val = max(val for val in d.values())
+  min_val = min(d.values())
+  max_val = max(d.values())
   range_val = max_val - min_val
 
   if range_val == 0: 
@@ -123,10 +121,7 @@ def top_highest_x_values(d, x):
     d = {'a':1.2,'b':3.4,'c':5.6,'d':7.8}
     x = 3
   """
-  top_v = dict(sorted(d.items(), 
-                      key=lambda item: item[1], 
-                      reverse=True)[:x])
-  return top_v
+  return dict(sorted(d.items(), key=lambda item: item[1], reverse=True)[:x])
 
 
 def extract_recency(persona, nodes):
@@ -144,12 +139,8 @@ def extract_recency(persona, nodes):
   """
   recency_vals = [persona.scratch.recency_decay ** i 
                   for i in range(1, len(nodes) + 1)]
-  
-  recency_out = dict()
-  for count, node in enumerate(nodes): 
-    recency_out[node.node_id] = recency_vals[count]
 
-  return recency_out
+  return {node.node_id: recency_vals[count] for count, node in enumerate(nodes)}
 
 
 def extract_importance(persona, nodes):
@@ -165,14 +156,10 @@ def extract_importance(persona, nodes):
     importance_out: A dictionary whose keys are the node.node_id and whose 
                     values are the float that represents the importance score.
   """
-  importance_out = dict()
-  for count, node in enumerate(nodes): 
-    importance_out[node.node_id] = node.poignancy
-
-  return importance_out
+  return {node.node_id: node.poignancy for node in nodes}
 
 
-def extract_relevance(persona, nodes, focal_pt): 
+def extract_relevance(persona, nodes, focal_pt):
   """
   Gets the current Persona object, a list of nodes that are in a 
   chronological order, and the focal_pt string and outputs a dictionary 
@@ -188,15 +175,15 @@ def extract_relevance(persona, nodes, focal_pt):
   """
   focal_embedding = get_embedding(focal_pt)
 
-  relevance_out = dict()
-  for count, node in enumerate(nodes): 
+  relevance_out = {}
+  for node in nodes:
     node_embedding = persona.a_mem.embeddings[node.embedding_key]
     relevance_out[node.node_id] = cos_sim(node_embedding, focal_embedding)
 
   return relevance_out
 
 
-def new_retrieve(persona, focal_points, n_count=30): 
+def new_retrieve(persona, focal_points, n_count=30):
   """
   Given the current persona and focal points (focal points are events or 
   thoughts for which we are retrieving), we retrieve a set of nodes for each
@@ -216,7 +203,7 @@ def new_retrieve(persona, focal_points, n_count=30):
     focal_points = ["How are you?", "Jane is swimming in the pond"]
   """
   # <retrieved> is the main dictionary that we are returning
-  retrieved = dict() 
+  retrieved = {}
   for focal_pt in focal_points: 
     # Getting all nodes from the agent's memory (both thoughts and events) and
     # sorting them by the datetime of creation.
@@ -231,7 +218,7 @@ def new_retrieve(persona, focal_points, n_count=30):
     recency_out = extract_recency(persona, nodes)
     recency_out = normalize_dict_floats(recency_out, 0, 1)
     importance_out = extract_importance(persona, nodes)
-    importance_out = normalize_dict_floats(importance_out, 0, 1)  
+    importance_out = normalize_dict_floats(importance_out, 0, 1)
     relevance_out = extract_relevance(persona, nodes, focal_pt)
     relevance_out = normalize_dict_floats(relevance_out, 0, 1)
 
@@ -242,7 +229,7 @@ def new_retrieve(persona, focal_points, n_count=30):
     # gw = [1, 1, 1]
     # gw = [1, 2, 1]
     gw = [0.5, 3, 2]
-    master_out = dict()
+    master_out = {}
     for key in recency_out.keys(): 
       master_out[key] = (persona.scratch.recency_w*recency_out[key]*gw[0] 
                      + persona.scratch.relevance_w*relevance_out[key]*gw[1] 
@@ -265,7 +252,7 @@ def new_retrieve(persona, focal_points, n_count=30):
 
     for n in master_nodes: 
       n.last_accessed = persona.scratch.curr_time
-      
+
     retrieved[focal_pt] = master_nodes
 
   return retrieved

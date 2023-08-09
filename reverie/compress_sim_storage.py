@@ -11,9 +11,9 @@ from global_methods import *
 def compress(sim_code):
   sim_storage = f"../environment/frontend_server/storage/{sim_code}"
   compressed_storage = f"../environment/frontend_server/compressed_storage/{sim_code}"
-  persona_folder = sim_storage + "/personas"
-  move_folder = sim_storage + "/movement"
-  meta_file = sim_storage + "/reverie/meta.json"
+  persona_folder = f"{sim_storage}/personas"
+  move_folder = f"{sim_storage}/movement"
+  meta_file = f"{sim_storage}/reverie/meta.json"
 
   persona_names = []
   for i in find_filenames(persona_folder, ""): 
@@ -21,13 +21,14 @@ def compress(sim_code):
     if x[0] != ".": 
       persona_names += [x]
 
-  max_move_count = max([int(i.split("/")[-1].split(".")[0]) 
-                 for i in find_filenames(move_folder, "json")])
-  
-  persona_last_move = dict()
-  master_move = dict()  
+  max_move_count = max(
+      int(i.split("/")[-1].split(".")[0])
+      for i in find_filenames(move_folder, "json"))
+
+  persona_last_move = {}
+  master_move = {}
   for i in range(max_move_count+1): 
-    master_move[i] = dict()
+    master_move[i] = {}
     with open(f"{move_folder}/{str(i)}.json") as json_file:  
       i_move_dict = json.load(json_file)["persona"]
       for p in persona_names: 

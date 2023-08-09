@@ -29,7 +29,7 @@ class Scratch:
     self.curr_tile = None
     # Perceived world daily requirement. 
     self.daily_plan_req = None
-    
+
     # THE CORE IDENTITY OF THE PERSONA 
     # Base information about the persona.
     self.name = None
@@ -60,7 +60,7 @@ class Scratch:
     self.recency_decay = 0.99
     self.importance_trigger_max = 150
     self.importance_trigger_curr = self.importance_trigger_max
-    self.importance_ele_n = 0 
+    self.importance_ele_n = 0
     self.thought_count = 5
 
     # PERSONA PLANNING 
@@ -102,7 +102,7 @@ class Scratch:
     #        ['wakes up and starts her morning routine', 120],
     #        ['working on her painting', 240], ... ['going to bed', 60]]
     self.f_daily_schedule_hourly_org = []
-    
+
     # CURR ACTION 
     # <address> is literally the string address of where the action is taking 
     # place.  It comes in the form of 
@@ -144,7 +144,7 @@ class Scratch:
     self.chat = None
     # <chatting_with_buffer>  
     # e.g., ["Dolores Murphy"] = self.vision_r
-    self.chatting_with_buffer = dict()
+    self.chatting_with_buffer = {}
     self.chatting_end_time = None
 
     # <path_set> is True if we've already calculated the path the persona will
@@ -243,12 +243,12 @@ class Scratch:
     OUTPUT: 
       None
     """
-    scratch = dict() 
-    scratch["vision_r"] = self.vision_r
-    scratch["att_bandwidth"] = self.att_bandwidth
-    scratch["retention"] = self.retention
-
-    scratch["curr_time"] = self.curr_time.strftime("%B %d, %Y, %H:%M:%S")
+    scratch = {
+        "vision_r": self.vision_r,
+        "att_bandwidth": self.att_bandwidth,
+        "retention": self.retention,
+        "curr_time": self.curr_time.strftime("%B %d, %Y, %H:%M:%S"),
+    }
     scratch["curr_tile"] = self.curr_tile
     scratch["daily_plan_req"] = self.daily_plan_req
 
@@ -333,13 +333,8 @@ class Scratch:
     today_min_elapsed += self.curr_time.minute
     today_min_elapsed += advance
 
-    x = 0
-    for task, duration in self.f_daily_schedule: 
-      x += duration
-    x = 0
-    for task, duration in self.f_daily_schedule_hourly_org: 
-      x += duration
-
+    x = sum(duration for task, duration in self.f_daily_schedule)
+    x = sum(duration for task, duration in self.f_daily_schedule_hourly_org)
     # We then calculate the current index based on that. 
     curr_index = 0
     elapsed = 0
@@ -455,10 +450,7 @@ class Scratch:
 
 
   def get_curr_event(self):
-    if not self.act_address: 
-      return (self.name, None, None)
-    else: 
-      return self.act_event
+    return (self.name, None, None) if not self.act_address else self.act_event
 
 
   def get_curr_event_and_desc(self): 
@@ -530,7 +522,7 @@ class Scratch:
     return self.act_start_time.strftime("%H:%M %p")
 
 
-  def act_check_finished(self): 
+  def act_check_finished(self):
     """
     Checks whether the self.Action instance has finished.  
 
@@ -543,7 +535,7 @@ class Scratch:
     """
     if not self.act_address: 
       return True
-      
+
     if self.chatting_with: 
       end_time = self.chatting_end_time
     else: 
@@ -553,9 +545,7 @@ class Scratch:
         x = (x + datetime.timedelta(minutes=1))
       end_time = (x + datetime.timedelta(minutes=self.act_duration))
 
-    if end_time.strftime("%H:%M:%S") == self.curr_time.strftime("%H:%M:%S"): 
-      return True
-    return False
+    return end_time.strftime("%H:%M:%S") == self.curr_time.strftime("%H:%M:%S")
 
 
   def act_summarize(self):
@@ -567,14 +557,14 @@ class Scratch:
     OUTPUT 
       ret: A human readable summary of the action.
     """
-    exp = dict()
-    exp["persona"] = self.name
-    exp["address"] = self.act_address
-    exp["start_datetime"] = self.act_start_time
-    exp["duration"] = self.act_duration
-    exp["description"] = self.act_description
-    exp["pronunciatio"] = self.act_pronunciatio
-    return exp
+    return {
+        "persona": self.name,
+        "address": self.act_address,
+        "start_datetime": self.act_start_time,
+        "duration": self.act_duration,
+        "description": self.act_description,
+        "pronunciatio": self.act_pronunciatio,
+    }
 
 
   def act_summary_str(self):

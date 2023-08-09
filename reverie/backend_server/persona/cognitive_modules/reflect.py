@@ -20,7 +20,7 @@ from persona.cognitive_modules.retrieve import *
 
 def generate_focal_points(persona, n=3): 
   if debug: print ("GNS FUNCTION: <generate_focal_points>")
-  
+
   nodes = [[i.last_accessed, i]
             for i in persona.a_mem.seq_event + persona.a_mem.seq_thought
             if "idle" not in i.embedding_key]
@@ -28,20 +28,17 @@ def generate_focal_points(persona, n=3):
   nodes = sorted(nodes, key=lambda x: x[0])
   nodes = [i for created, i in nodes]
 
-  statements = ""
-  for node in nodes[-1*persona.scratch.importance_ele_n:]: 
-    statements += node.embedding_key + "\n"
-
+  statements = "".join(node.embedding_key + "\n"
+                       for node in nodes[-1 *
+                                         persona.scratch.importance_ele_n:])
   return run_gpt_prompt_focal_pt(persona, statements, n)[0]
 
 
 def generate_insights_and_evidence(persona, nodes, n=5): 
   if debug: print ("GNS FUNCTION: <generate_insights_and_evidence>")
 
-  statements = ""
-  for count, node in enumerate(nodes): 
-    statements += f'{str(count)}. {node.embedding_key}\n'
-
+  statements = "".join(f'{str(count)}. {node.embedding_key}\n'
+                       for count, node in enumerate(nodes))
   ret = run_gpt_prompt_insight_and_guidance(persona, statements, n)[0]
 
   print (ret)
@@ -76,7 +73,7 @@ def generate_poig_score(persona, event_type, description):
   if "is idle" in description: 
     return 1
 
-  if event_type == "event" or event_type == "thought": 
+  if event_type in ["event", "thought"]: 
     return run_gpt_prompt_event_poignancy(persona, description)[0]
   elif event_type == "chat": 
     return run_gpt_prompt_chat_poignancy(persona, 
@@ -113,7 +110,7 @@ def run_reflect(persona):
   retrieved = new_retrieve(persona, focal_points)
 
   # For each of the focal points, generate thoughts and save it in the 
-  # agent's memory. 
+  # agent's memory.
   for focal_pt, nodes in retrieved.items(): 
     xx = [i.embedding_key for i in nodes]
     for xxx in xx: print (xxx)
@@ -123,7 +120,7 @@ def run_reflect(persona):
       created = persona.scratch.curr_time
       expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
       s, p, o = generate_action_event_triple(thought, persona)
-      keywords = set([s, p, o])
+      keywords = {s, p, o}
       thought_poignancy = generate_poig_score(persona, "thought", thought)
       thought_embedding_pair = (thought, get_embedding(thought))
 
@@ -132,7 +129,7 @@ def run_reflect(persona):
                                 thought_embedding_pair, evidence)
 
 
-def reflection_trigger(persona): 
+def reflection_trigger(persona):
   """
   Given the current persona, determine whether the persona should run a 
   reflection. 
@@ -149,10 +146,8 @@ def reflection_trigger(persona):
   print (persona.scratch.name, "persona.scratch.importance_trigger_curr::", persona.scratch.importance_trigger_curr)
   print (persona.scratch.importance_trigger_max)
 
-  if (persona.scratch.importance_trigger_curr <= 0 and 
-      [] != persona.a_mem.seq_event + persona.a_mem.seq_thought): 
-    return True 
-  return False
+  return (persona.scratch.importance_trigger_curr <= 0
+          and [] != persona.a_mem.seq_event + persona.a_mem.seq_thought)
 
 
 def reset_reflection_counter(persona): 
@@ -205,7 +200,7 @@ def reflect(persona):
       # print ("init memo: aosdhfpaoisdh90m     ::", f"For {persona.scratch.name} {memo_thought}")
       # memo_thought = generate_memo_on_convo(target_persona, all_utt)
       # print ("target memo: aosdhfpsaoish90m     ::", f"For {target_persona.scratch.name} {memo_thought}")
-      
+
 
       # make sure you set the fillings as well
 
@@ -219,7 +214,7 @@ def reflect(persona):
       created = persona.scratch.curr_time
       expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
       s, p, o = generate_action_event_triple(planning_thought, persona)
-      keywords = set([s, p, o])
+      keywords = {s, p, o}
       thought_poignancy = generate_poig_score(persona, "thought", planning_thought)
       thought_embedding_pair = (planning_thought, get_embedding(planning_thought))
 
@@ -235,7 +230,7 @@ def reflect(persona):
       created = persona.scratch.curr_time
       expiration = persona.scratch.curr_time + datetime.timedelta(days=30)
       s, p, o = generate_action_event_triple(memo_thought, persona)
-      keywords = set([s, p, o])
+      keywords = {s, p, o}
       thought_poignancy = generate_poig_score(persona, "thought", memo_thought)
       thought_embedding_pair = (memo_thought, get_embedding(memo_thought))
 
