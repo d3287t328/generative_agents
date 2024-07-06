@@ -29,28 +29,26 @@ def demo(request, sim_code, step, play_speed="2"):
   step = int(step)
   play_speed_opt = {"1": 1, "2": 2, "3": 4,
                     "4": 8, "5": 16, "6": 32}
-  if play_speed not in play_speed_opt: play_speed = 2
-  else: play_speed = play_speed_opt[play_speed]
-
+  play_speed = play_speed_opt.get(play_speed, 2)
   # Loading the basic meta information about the simulation.
-  meta = dict() 
+  meta = {}
   with open (meta_file) as json_file: 
     meta = json.load(json_file)
 
   sec_per_step = meta["sec_per_step"]
   start_datetime = datetime.datetime.strptime(meta["start_date"] + " 00:00:00", 
                                               '%B %d, %Y %H:%M:%S')
-  for i in range(step): 
+  for _ in range(step):
     start_datetime += datetime.timedelta(seconds=sec_per_step)
   start_datetime = start_datetime.strftime("%Y-%m-%dT%H:%M:%S")
 
   # Loading the movement file
-  raw_all_movement = dict()
+  raw_all_movement = {}
   with open(move_file) as json_file: 
     raw_all_movement = json.load(json_file)
- 
+
   # Loading all names of the personas
-  persona_names = dict()
+  persona_names = {}
   persona_names = []
   persona_names_set = set()
   for p in list(raw_all_movement["0"].keys()): 
@@ -59,27 +57,21 @@ def demo(request, sim_code, step, play_speed="2"):
                        "initial": p[0] + p.split(" ")[-1][0]}]
     persona_names_set.add(p)
 
-  # <all_movement> is the main movement variable that we are passing to the 
-  # frontend. Whereas we use ajax scheme to communicate steps to the frontend
-  # during the simulation stage, for this demo, we send all movement 
-  # information in one step. 
-  all_movement = dict()
-
   # Preparing the initial step. 
   # <init_prep> sets the locations and descriptions of all agents at the
-  # beginning of the demo determined by <step>. 
-  init_prep = dict() 
+  # beginning of the demo determined by <step>.
+  init_prep = {}
   for int_key in range(step+1): 
     key = str(int_key)
     val = raw_all_movement[key]
     for p in persona_names_set: 
       if p in val: 
         init_prep[p] = val[p]
-  persona_init_pos = dict()
-  for p in persona_names_set: 
-    persona_init_pos[p.replace(" ","_")] = init_prep[p]["movement"]
-  all_movement[step] = init_prep
-
+  persona_init_pos = {
+      p.replace(" ", "_"): init_prep[p]["movement"]
+      for p in persona_names_set
+  }
+  all_movement = {step: init_prep}
   # Finish loading <all_movement>
   for int_key in range(step+1, len(raw_all_movement.keys())): 
     all_movement[int_key] = raw_all_movement[str(int_key)]
@@ -193,13 +185,13 @@ def replay_persona_state(request, sim_code, step, persona_name):
   if not os.path.exists(memory): 
     memory = f"compressed_storage/{sim_code}/personas/{persona_name}/bootstrap_memory"
 
-  with open(memory + "/scratch.json") as json_file:  
+  with open(f"{memory}/scratch.json") as json_file:  
     scratch = json.load(json_file)
 
-  with open(memory + "/spatial_memory.json") as json_file:  
+  with open(f"{memory}/spatial_memory.json") as json_file:  
     spatial = json.load(json_file)
 
-  with open(memory + "/associative_memory/nodes.json") as json_file:  
+  with open(f"{memory}/associative_memory/nodes.json") as json_file:  
     associative = json.load(json_file)
 
   a_mem_event = []
@@ -218,7 +210,7 @@ def replay_persona_state(request, sim_code, step, persona_name):
 
     elif node_details["type"] == "thought":
       a_mem_thought += [node_details]
-  
+
   context = {"sim_code": sim_code,
              "step": step,
              "persona_name": persona_name, 
@@ -295,7 +287,7 @@ def update_environment(request):
   return JsonResponse(response_data)
 
 
-def path_tester_update(request): 
+def path_tester_update(request):
   """
   Processing the path and saving it to path_tester_env.json temp storage for 
   conducting the path tester. 
@@ -308,7 +300,7 @@ def path_tester_update(request):
   data = json.loads(request.body)
   camera = data["camera"]
 
-  with open(f"temp_storage/path_tester_env.json", "w") as outfile:
+  with open("temp_storage/path_tester_env.json", "w") as outfile:
     outfile.write(json.dumps(camera, indent=2))
 
   return HttpResponse("received")

@@ -47,44 +47,36 @@ class Maze:
     # unique within an instance of Reverie. 
     blocks_folder = f"{env_matrix}/special_blocks"
 
-    _wb = blocks_folder + "/world_blocks.csv"
+    _wb = f"{blocks_folder}/world_blocks.csv"
     wb_rows = read_file_to_list(_wb, header=False)
     wb = wb_rows[0][-1]
-   
-    _sb = blocks_folder + "/sector_blocks.csv"
-    sb_rows = read_file_to_list(_sb, header=False)
-    sb_dict = dict()
-    for i in sb_rows: sb_dict[i[0]] = i[-1]
-    
-    _ab = blocks_folder + "/arena_blocks.csv"
-    ab_rows = read_file_to_list(_ab, header=False)
-    ab_dict = dict()
-    for i in ab_rows: ab_dict[i[0]] = i[-1]
-    
-    _gob = blocks_folder + "/game_object_blocks.csv"
-    gob_rows = read_file_to_list(_gob, header=False)
-    gob_dict = dict()
-    for i in gob_rows: gob_dict[i[0]] = i[-1]
-    
-    _slb = blocks_folder + "/spawning_location_blocks.csv"
-    slb_rows = read_file_to_list(_slb, header=False)
-    slb_dict = dict()
-    for i in slb_rows: slb_dict[i[0]] = i[-1]
 
+    _sb = f"{blocks_folder}/sector_blocks.csv"
+    sb_rows = read_file_to_list(_sb, header=False)
+    sb_dict = {i[0]: i[-1] for i in sb_rows}
+    _ab = f"{blocks_folder}/arena_blocks.csv"
+    ab_rows = read_file_to_list(_ab, header=False)
+    ab_dict = {i[0]: i[-1] for i in ab_rows}
+    _gob = f"{blocks_folder}/game_object_blocks.csv"
+    gob_rows = read_file_to_list(_gob, header=False)
+    gob_dict = {i[0]: i[-1] for i in gob_rows}
+    _slb = f"{blocks_folder}/spawning_location_blocks.csv"
+    slb_rows = read_file_to_list(_slb, header=False)
+    slb_dict = {i[0]: i[-1] for i in slb_rows}
     # [SECTION 3] Reading in the matrices 
     # This is your typical two dimensional matrices. It's made up of 0s and 
     # the number that represents the color block from the blocks folder. 
     maze_folder = f"{env_matrix}/maze"
 
-    _cm = maze_folder + "/collision_maze.csv"
+    _cm = f"{maze_folder}/collision_maze.csv"
     collision_maze_raw = read_file_to_list(_cm, header=False)[0]
-    _sm = maze_folder + "/sector_maze.csv"
+    _sm = f"{maze_folder}/sector_maze.csv"
     sector_maze_raw = read_file_to_list(_sm, header=False)[0]
-    _am = maze_folder + "/arena_maze.csv"
+    _am = f"{maze_folder}/arena_maze.csv"
     arena_maze_raw = read_file_to_list(_am, header=False)[0]
-    _gom = maze_folder + "/game_object_maze.csv"
+    _gom = f"{maze_folder}/game_object_maze.csv"
     game_object_maze_raw = read_file_to_list(_gom, header=False)[0]
-    _slm = maze_folder + "/spawning_location_maze.csv"
+    _slm = f"{maze_folder}/spawning_location_maze.csv"
     spawning_location_maze_raw = read_file_to_list(_slm, header=False)[0]
 
     # Loading the maze. The mazes are taken directly from the json exports of
@@ -128,31 +120,28 @@ class Maze:
     for i in range(self.maze_height): 
       row = []
       for j in range(self.maze_width):
-        tile_details = dict()
-        tile_details["world"] = wb
-        
-        tile_details["sector"] = ""
+        tile_details = {"world": wb, "sector": ""}
         if sector_maze[i][j] in sb_dict: 
           tile_details["sector"] = sb_dict[sector_maze[i][j]]
-        
+
         tile_details["arena"] = ""
         if arena_maze[i][j] in ab_dict: 
           tile_details["arena"] = ab_dict[arena_maze[i][j]]
-        
+
         tile_details["game_object"] = ""
         if game_object_maze[i][j] in gob_dict: 
           tile_details["game_object"] = gob_dict[game_object_maze[i][j]]
-        
+
         tile_details["spawning_location"] = ""
         if spawning_location_maze[i][j] in slb_dict: 
           tile_details["spawning_location"] = slb_dict[spawning_location_maze[i][j]]
-        
+
         tile_details["collision"] = False
         if self.collision_maze[i][j] != "0": 
           tile_details["collision"] = True
 
         tile_details["events"] = set()
-        
+
         row += [tile_details]
       self.tiles += [row]
     # Each game object occupies an event in the tile. We are setting up the 
@@ -174,8 +163,8 @@ class Maze:
     # an optimization component for finding paths for the personas' movement. 
     # self.address_tiles['<spawn_loc>bedroom-2-a'] == {(58, 9)}
     # self.address_tiles['double studio:recreation:pool table'] 
-    #   == {(29, 14), (31, 11), (30, 14), (32, 11), ...}, 
-    self.address_tiles = dict()
+    #   == {(29, 14), (31, 11), (30, 14), (32, 11), ...},
+    self.address_tiles = {}
     for i in range(self.maze_height):
       for j in range(self.maze_width): 
         addresses = []
@@ -202,7 +191,7 @@ class Maze:
           if add in self.address_tiles: 
             self.address_tiles[add].add((j, i))
           else: 
-            self.address_tiles[add] = set([(j, i)])
+            self.address_tiles[add] = {(j, i)}
 
 
   def turn_coordinate_to_tile(self, px_coordinate): 

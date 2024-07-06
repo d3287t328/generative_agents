@@ -22,7 +22,7 @@ def generate_poig_score(persona, event_type, description):
     return run_gpt_prompt_chat_poignancy(persona, 
                            persona.scratch.act_description)[0]
 
-def perceive(persona, maze): 
+def perceive(persona, maze):
   """
   Perceives events around the persona and saves it to the memory, both events 
   and spaces. 
@@ -98,10 +98,10 @@ def perceive(persona, maze):
   # events. If the bandwidth is larger, then it means the persona can perceive
   # more elements within a small area. 
   percept_events_list = sorted(percept_events_list, key=itemgetter(0))
-  perceived_events = []
-  for dist, event in percept_events_list[:persona.scratch.att_bandwidth]: 
-    perceived_events += [event]
-
+  perceived_events = [
+      event
+      for dist, event in percept_events_list[:persona.scratch.att_bandwidth]
+  ]
   # Storing events. 
   # <ret_events> is a list of <ConceptNode> instances from the persona's 
   # associative memory. 
@@ -143,7 +143,7 @@ def perceive(persona, maze):
       else: 
         event_embedding = get_embedding(desc_embedding_in)
       event_embedding_pair = (desc_embedding_in, event_embedding)
-      
+
       # Get event poignancy. 
       event_poignancy = generate_poig_score(persona, 
                                             "event", 

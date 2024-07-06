@@ -49,22 +49,22 @@ class ConceptNode:
 
 class AssociativeMemory: 
   def __init__(self, f_saved): 
-    self.id_to_node = dict()
+    self.id_to_node = {}
 
     self.seq_event = []
     self.seq_thought = []
     self.seq_chat = []
 
-    self.kw_to_event = dict()
-    self.kw_to_thought = dict()
-    self.kw_to_chat = dict()
+    self.kw_to_event = {}
+    self.kw_to_thought = {}
+    self.kw_to_chat = {}
 
-    self.kw_strength_event = dict()
-    self.kw_strength_thought = dict()
+    self.kw_strength_event = {}
+    self.kw_strength_thought = {}
 
-    self.embeddings = json.load(open(f_saved + "/embeddings.json"))
+    self.embeddings = json.load(open(f"{f_saved}/embeddings.json"))
 
-    nodes_load = json.load(open(f_saved + "/nodes.json"))
+    nodes_load = json.load(open(f"{f_saved}/nodes.json"))
     for count in range(len(nodes_load.keys())): 
       node_id = f"node_{str(count+1)}"
       node_details = nodes_load[node_id]
@@ -91,18 +91,18 @@ class AssociativeMemory:
       poignancy =node_details["poignancy"]
       keywords = set(node_details["keywords"])
       filling = node_details["filling"]
-      
-      if node_type == "event": 
-        self.add_event(created, expiration, s, p, o, 
-                   description, keywords, poignancy, embedding_pair, filling)
-      elif node_type == "chat": 
+
+      if node_type == "chat":
         self.add_chat(created, expiration, s, p, o, 
                    description, keywords, poignancy, embedding_pair, filling)
-      elif node_type == "thought": 
+      elif node_type == "event":
+        self.add_event(created, expiration, s, p, o, 
+                   description, keywords, poignancy, embedding_pair, filling)
+      elif node_type == "thought":
         self.add_thought(created, expiration, s, p, o, 
                    description, keywords, poignancy, embedding_pair, filling)
 
-    kw_strength_load = json.load(open(f_saved + "/kw_strength.json"))
+    kw_strength_load = json.load(open(f"{f_saved}/kw_strength.json"))
     if kw_strength_load["kw_strength_event"]: 
       self.kw_strength_event = kw_strength_load["kw_strength_event"]
     if kw_strength_load["kw_strength_thought"]: 
@@ -110,19 +110,19 @@ class AssociativeMemory:
 
     
   def save(self, out_json): 
-    r = dict()
+    r = {}
     for count in range(len(self.id_to_node.keys()), 0, -1): 
       node_id = f"node_{str(count)}"
       node = self.id_to_node[node_id]
 
-      r[node_id] = dict()
-      r[node_id]["node_count"] = node.node_count
-      r[node_id]["type_count"] = node.type_count
-      r[node_id]["type"] = node.type
-      r[node_id]["depth"] = node.depth
-
-      r[node_id]["created"] = node.created.strftime('%Y-%m-%d %H:%M:%S')
-      r[node_id]["expiration"] = None
+      r[node_id] = {
+          "node_count": node.node_count,
+          "type_count": node.type_count,
+          "type": node.type,
+          "depth": node.depth,
+          "created": node.created.strftime('%Y-%m-%d %H:%M:%S'),
+          "expiration": None,
+      }
       if node.expiration: 
         r[node_id]["expiration"] = (node.expiration
                                         .strftime('%Y-%m-%d %H:%M:%S'))
@@ -137,16 +137,16 @@ class AssociativeMemory:
       r[node_id]["keywords"] = list(node.keywords)
       r[node_id]["filling"] = node.filling
 
-    with open(out_json+"/nodes.json", "w") as outfile:
+    with open(f"{out_json}/nodes.json", "w") as outfile:
       json.dump(r, outfile)
 
-    r = dict()
+    r = {}
     r["kw_strength_event"] = self.kw_strength_event
     r["kw_strength_thought"] = self.kw_strength_thought
-    with open(out_json+"/kw_strength.json", "w") as outfile:
+    with open(f"{out_json}/kw_strength.json", "w") as outfile:
       json.dump(r, outfile)
 
-    with open(out_json+"/embeddings.json", "w") as outfile:
+    with open(f"{out_json}/embeddings.json", "w") as outfile:
       json.dump(self.embeddings, outfile)
 
 
@@ -173,12 +173,12 @@ class AssociativeMemory:
                        description, embedding_pair[0], 
                        poignancy, keywords, filling)
 
-    # Creating various dictionary cache for fast access. 
-    self.seq_event[0:0] = [node]
+    # Creating various dictionary cache for fast access.
+    self.seq_event[:0] = [node]
     keywords = [i.lower() for i in keywords]
     for kw in keywords: 
       if kw in self.kw_to_event: 
-        self.kw_to_event[kw][0:0] = [node]
+        self.kw_to_event[kw][:0] = [node]
       else: 
         self.kw_to_event[kw] = [node]
     self.id_to_node[node_id] = node 
@@ -204,10 +204,10 @@ class AssociativeMemory:
     type_count = len(self.seq_thought) + 1
     node_type = "thought"
     node_id = f"node_{str(node_count)}"
-    depth = 1 
+    depth = 1
     try: 
       if filling: 
-        depth += max([self.id_to_node[i].depth for i in filling])
+        depth += max(self.id_to_node[i].depth for i in filling)
     except: 
       pass
 
@@ -217,12 +217,12 @@ class AssociativeMemory:
                        s, p, o, 
                        description, embedding_pair[0], poignancy, keywords, filling)
 
-    # Creating various dictionary cache for fast access. 
-    self.seq_thought[0:0] = [node]
+    # Creating various dictionary cache for fast access.
+    self.seq_thought[:0] = [node]
     keywords = [i.lower() for i in keywords]
     for kw in keywords: 
       if kw in self.kw_to_thought: 
-        self.kw_to_thought[kw][0:0] = [node]
+        self.kw_to_thought[kw][:0] = [node]
       else: 
         self.kw_to_thought[kw] = [node]
     self.id_to_node[node_id] = node 
@@ -256,26 +256,23 @@ class AssociativeMemory:
                        s, p, o, 
                        description, embedding_pair[0], poignancy, keywords, filling)
 
-    # Creating various dictionary cache for fast access. 
-    self.seq_chat[0:0] = [node]
+    # Creating various dictionary cache for fast access.
+    self.seq_chat[:0] = [node]
     keywords = [i.lower() for i in keywords]
     for kw in keywords: 
       if kw in self.kw_to_chat: 
-        self.kw_to_chat[kw][0:0] = [node]
+        self.kw_to_chat[kw][:0] = [node]
       else: 
         self.kw_to_chat[kw] = [node]
     self.id_to_node[node_id] = node 
 
     self.embeddings[embedding_pair[0]] = embedding_pair[1]
-        
+
     return node
 
 
   def get_summarized_latest_events(self, retention): 
-    ret_set = set()
-    for e_node in self.seq_event[:retention]: 
-      ret_set.add(e_node.spo_summary())
-    return ret_set
+    return {e_node.spo_summary() for e_node in self.seq_event[:retention]}
 
 
   def get_str_seq_events(self): 
@@ -294,7 +291,7 @@ class AssociativeMemory:
 
   def get_str_seq_chats(self): 
     ret_str = ""
-    for count, event in enumerate(self.seq_chat): 
+    for event in self.seq_chat:
       ret_str += f"with {event.object.content} ({event.description})\n"
       ret_str += f'{event.created.strftime("%B %d, %Y, %H:%M:%S")}\n'
       for row in event.filling: 

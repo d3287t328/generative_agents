@@ -224,7 +224,7 @@ def GPT_request(prompt, gpt_parameter):
     return "TOKEN LIMIT EXCEEDED"
 
 
-def generate_prompt(curr_input, prompt_lib_file): 
+def generate_prompt(curr_input, prompt_lib_file):
   """
   Takes in the current input (e.g. comment that you want to classifiy) and 
   the path to a prompt file. The prompt file contains the raw str prompt that
@@ -242,9 +242,8 @@ def generate_prompt(curr_input, prompt_lib_file):
     curr_input = [curr_input]
   curr_input = [str(i) for i in curr_input]
 
-  f = open(prompt_lib_file, "r")
-  prompt = f.read()
-  f.close()
+  with open(prompt_lib_file, "r") as f:
+    prompt = f.read()
   for count, i in enumerate(curr_input):   
     prompt = prompt.replace(f"!<INPUT {count}>!", i)
   if "<commentblockmarker>###</commentblockmarker>" in prompt: 
@@ -293,12 +292,9 @@ if __name__ == '__main__':
   def __func_validate(gpt_response): 
     if len(gpt_response.strip()) <= 1:
       return False
-    if len(gpt_response.strip().split(" ")) > 1: 
-      return False
-    return True
+    return len(gpt_response.strip().split(" ")) <= 1
   def __func_clean_up(gpt_response):
-    cleaned_response = gpt_response.strip()
-    return cleaned_response
+    return gpt_response.strip()
 
   output = safe_generate_response(prompt, 
                                  gpt_parameter,
